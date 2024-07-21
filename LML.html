@@ -1,0 +1,268 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>남은 날짜 계산기</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <style>
+        @font-face {
+            font-family: 'LINESeedKR-Bd';
+            src: url('https://fastly.jsdelivr.net/gh/projectnoonnu/noonfonts_11-01@1.0/LINESeedKR-Bd.woff2') format('woff2');
+            font-weight: 700;
+            font-style: normal;
+        }
+
+        body {
+            font-family: 'LINESeedKR-Bd', Arial, sans-serif;
+            background-color: #f2f2f7;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+            position: relative;
+        }
+
+        .container {
+            background-color: #fff;
+            padding: 20px;
+            border-radius: 16px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+            text-align: center;
+            position: relative;
+            transition: all 0.3s ease-in-out;
+        }
+
+        .container:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2);
+        }
+
+        .language-switcher {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            width: 30px;
+            height: 30px;
+            cursor: pointer;
+            font-size: 24px;
+            color: #010101;
+            background: transparent;
+            border: none;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: color 0.3s ease-in-out;
+        }
+
+        .language-switcher:hover {
+            color: #007BFF;
+        }
+
+        h1, label, button, #result {
+            opacity: 0;
+            transition: opacity 0.5s ease-in-out;
+        }
+
+        h1, label, button, #result {
+            opacity: 1;
+        }
+
+        input, select {
+            width: calc(100% - 22px);
+            padding: 10px;
+            margin-bottom: 10px;
+            border: 1px solid #ccc;
+            border-radius: 8px;
+            font-family: 'LINESeedKR-Bd', Arial, sans-serif;
+            transition: all 0.3s ease-in-out;
+            box-sizing: border-box;
+        }
+
+        input:focus, select:focus {
+            border-color: #007BFF;
+            box-shadow: 0 0 8px rgba(0, 123, 255, 0.5);
+            outline: none;
+        }
+
+        button {
+            width: 100%;
+            padding: 12px;
+            margin-bottom: 10px;
+            border: none;
+            border-radius: 8px;
+            font-family: 'LINESeedKR-Bd', Arial, sans-serif;
+            font-size: 16px;
+            background-color: #fac000;
+            color: #010101;
+            cursor: pointer;
+            transition: all 0.3s ease-in-out;
+        }
+
+        button:hover {
+            background-color: #fac300ac;
+            transform: scale(1.05);
+        }
+
+        button:active {
+            transform: scale(0.95);
+        }
+
+        #result {
+            margin-top: 20px;
+            font-size: 18px;
+            font-weight: bold;
+        }
+
+        .highlight {
+            color: #ff001f;
+        }
+
+        @keyframes fadeIn {
+            0% {
+                opacity: 0;
+            }
+            100% {
+                opacity: 1;
+            }
+        }
+
+        @keyframes fadeOut {
+            0% {
+                opacity: 1;
+            }
+            100% {
+                opacity: 0;
+            }
+        }
+
+        .fade-in {
+            animation: fadeIn 0.5s forwards;
+        }
+
+        .fade-out {
+            animation: fadeOut 0.5s forwards;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <button class="language-switcher" onclick="toggleLanguage()">
+            <i class="fa-solid fa-language" style="color: #010101;"></i>
+        </button>
+        <h1 id="title"></h1>
+        <label for="date-input" id="today-label"></label>
+        <input type="date" id="date-input">
+        
+        <label for="target-date-input" id="target-date-label"></label>
+        <input type="date" id="target-date-input" value="2024-12-31">
+        
+        <label for="day-select" id="day-select-label"></label>
+        <select id="day-select"></select>
+        
+        <button onclick="calculateDays()" id="calculate-button"></button>
+        
+        <div id="result"></div>
+    </div>
+    <script>
+        let currentLang = 'ko'; // 기본 언어는 한국어로 설정
+
+        function setLanguage() {
+            const isKorean = currentLang === 'ko';
+
+            const elements = {
+                title: document.getElementById('title'),
+                todayLabel: document.getElementById('today-label'),
+                targetDateLabel: document.getElementById('target-date-label'),
+                daySelectLabel: document.getElementById('day-select-label'),
+                calculateButton: document.getElementById('calculate-button'),
+                daySelect: document.getElementById('day-select'),
+                result: document.getElementById('result')
+            };
+
+            const daysOfWeek = isKorean
+                ? ['일요일', '월요일', '화요일', '수요일', '목요일', '금요일', '토요일']
+                : ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+
+            if (isKorean) {
+                elements.title.textContent = '남은 날짜 계산기';
+                elements.todayLabel.textContent = '오늘 날짜:';
+                elements.targetDateLabel.textContent = '목표 날짜:';
+                elements.daySelectLabel.textContent = '요일 선택:';
+                elements.calculateButton.textContent = '계산하기';
+            } else {
+                elements.title.textContent = 'Days Remaining Calculator';
+                elements.todayLabel.textContent = 'Today\'s Date:';
+                elements.targetDateLabel.textContent = 'Target Date:';
+                elements.daySelectLabel.textContent = 'Select Day:';
+                elements.calculateButton.textContent = 'Calculate';
+            }
+
+            elements.daySelect.innerHTML = daysOfWeek.map((day, index) =>
+                `<option value="${index}">${day}</option>`
+            ).join('');
+
+            // 언어 변경 시 부드러운 전환
+            document.querySelectorAll('#title, #today-label, #target-date-label, #day-select-label, #calculate-button, #result').forEach(el => {
+                el.classList.add('fade-out');
+                setTimeout(() => {
+                    el.classList.remove('fade-out');
+                    el.classList.add('fade-in');
+                }, 500); // 애니메이션 시간과 일치
+            });
+        }
+
+        window.onload = function() {
+            setLanguage();
+            const today = new Date();
+            const year = today.getFullYear();
+            const month = String(today.getMonth() + 1).padStart(2, '0');
+            const day = String(today.getDate()).padStart(2, '0');
+            document.getElementById('date-input').value = `${year}-${month}-${day}`;
+        }
+
+        function calculateDays() {
+            const dateInput = document.getElementById('date-input').value;
+            const targetDateInput = document.getElementById('target-date-input').value;
+            const selectedDay = parseInt(document.getElementById('day-select').value);
+            const currentDate = new Date(dateInput);
+            const targetDate = new Date(targetDateInput);
+
+            // 날짜 차이를 일 단위로 계산
+            const timeDiff = targetDate.getTime() - currentDate.getTime();
+            const daysRemaining = Math.ceil(timeDiff / (1000 * 3600 * 24));
+
+            let selectedDaysRemaining = 0;
+
+            for (let day = 0; day <= daysRemaining; day++) {
+                const newDate = new Date(currentDate);
+                newDate.setDate(currentDate.getDate() + day);
+                if (newDate.getDay() === selectedDay) {
+                    selectedDaysRemaining++;
+                }
+            }
+
+            const resultText = currentLang === 'ko'
+                ? `선택한 기간 동안 남은 ${daysRemaining}일 중 선택한 요일은 <span class="highlight">${selectedDaysRemaining}</span>번 있습니다.`
+                : `There are <span class="highlight">${selectedDaysRemaining}</span> occurrences of the selected day<br>within the remaining ${daysRemaining} days.`;
+
+            const resultElement = document.getElementById('result');
+            resultElement.innerHTML = resultText;
+
+            // 부드러운 결과 텍스트 업데이트
+            resultElement.classList.add('fade-out');
+            setTimeout(() => {
+                resultElement.classList.remove('fade-out');
+                resultElement.classList.add('fade-in');
+            }, 500); // 애니메이션 시간과 일치
+        }
+
+        function toggleLanguage() {
+            currentLang = (currentLang === 'ko') ? 'en' : 'ko'; // 언어 토글
+            setLanguage();
+            calculateDays(); // 언어 변경 후 결과 업데이트
+        }
+    </script>
+</body>
+</html>
